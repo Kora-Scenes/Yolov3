@@ -98,9 +98,9 @@ def detector(image, num):
             y = person_boxes[it][1]
             w = person_boxes[it][2]
             h = person_boxes[it][3]
-            persons_in_image.append({'x':x,'y':y,'w':w,'h':h,'conf':str(person_confidences[it])[0:4]})
+            persons_in_image.append({'x':x,'y':y,'w':w+x,'h':h+y,'conf':str(person_confidences[i])[0:4]})
             cv2.rectangle(image, (round(box[0]),round(box[1])), (round(box[0]+box[2]),round(box[1]+box[3])), (0,255,0), 2)
-            text = (str(label)[0]) + ' ' + (str(person_confidences[it])[0:4])
+            text = (str(label)[0]) + ' ' + (str(person_confidences[i])[0:4])
             cv2.putText(image, text, (round(box[0])-10,round(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
             it += 1
 

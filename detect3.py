@@ -105,7 +105,7 @@ def detector(image, num):
             y = person_boxes[it][1]
             w = person_boxes[it][2]
             h = person_boxes[it][3]
-            persons_in_image.append({'x':x,'y':y,'w':w,'h':h,'conf':str(person_confidences[it])[0:4]})
+            persons_in_image.append({'x':x,'y':y,'w':w+x,'h':h+y,'conf':str(person_confidences[it])[0:4]})
             image = cv2.rectangle(image, (round(box[0]),round(box[1])), (round(box[0]+box[2]),round(box[1]+box[3])), (0,255,0), 2)
             text = (str(label)[0]) + ' ' + (str(person_confidences[it])[0:4])
             cv2.putText(image, text, (round(box[0])-10,round(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
@@ -116,7 +116,7 @@ def detector(image, num):
     #print(persons_in_image)
 
 
-    '''
+    
     persons_in_image = tuple(persons_in_image)
     out_path = 'Output_Annotations/image (' + str(num) +').json'
     with io.open(out_path, 'w', encoding='utf8') as outfile:
@@ -124,7 +124,7 @@ def detector(image, num):
                       indent=4, sort_keys=True,
                       separators=(',', ': '), ensure_ascii=False)
         outfile.write(to_unicode(str_))
-    '''
+    
 
 train_info = creatingInfoData(train_annot)
 test_info = creatingInfoData(test_annot)
@@ -171,7 +171,7 @@ for img_path in test_images:
     cv2.waitKey(0)
 '''
 
-'''for i in range(11,236):
+for i in range(11,236):
     inp_path = 'Test/Test/JPEGImages/' + 'image (' + str(i) + ')' + '.jpg'
     #print(inp_path)
     img = cv2.imread(inp_path)
@@ -185,4 +185,3 @@ for img_path in test_images:
     #out_path = 'results/'+'Result' + str(i) + '.jpg'
     #cv2.imwrite(out_path,img)
     #cv2.waitKey(0)
-'''
