@@ -1,6 +1,6 @@
 # Yolov3
 
-    #Missing files:-
+# Missing files:
 
         yolov3.cfg
         yolov3.weights
