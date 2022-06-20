@@ -49,22 +49,22 @@ def detector(image, num):
             y = person_boxes[it][1]
             w = person_boxes[it][2]
             h = person_boxes[it][3]
-            persons_in_image.append({'x':x,'y':y,'w':w,'h':h,'conf':str(person_confidences[it])[0:4]})
+            persons_in_image.append({'x':x,'y':y,'w':w,'h':h,'conf':str(person_confidences[i])[0:4]})
             cv2.rectangle(image, (round(box[0]),round(box[1])), (round(box[0]+box[2]),round(box[1]+box[3])), (0,255,0), 2)
-            text = (str(label)[0]) + ' ' + (str(person_confidences[it])[0:4])
+            text = (str(label)[0]) + ' ' + (str(person_confidences[i])[0:4])
             cv2.putText(image, text, (round(box[0])-10,round(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
             it += 1
 
+if __name__ == '__main__':
+    for i in range(1,11):
+        inp_path = 'Test/Test/JPEGImages/' + 'image (' + str(i) + ')' + '.jpg'
+        print(inp_path)
+        img = cv2.imread(inp_path)
+        coco_classes = None
+        with open('coco.names','r') as f:
+            coco_classes = [line.strip() for line in f.readlines()]
 
-for i in range(1,11):
-    inp_path = 'Test/Test/JPEGImages/' + 'image (' + str(i) + ')' + '.jpg'
-    print(inp_path)
-    img = cv2.imread(inp_path)
-    coco_classes = None
-    with open('coco.names','r') as f:
-        coco_classes = [line.strip() for line in f.readlines()]
-
-    net = cv2.dnn.readNet('yolov3.weights','yolov3.cfg')
-    detector(img, i)
-    out_path = 'results/'+'Result' + str(i) + '.jpg'
-    cv2.imwrite(out_path,img)
+        net = cv2.dnn.readNet('yolov3.weights','yolov3.cfg')
+        detector(img, i)
+        out_path = 'results/'+'Result' + str(i) + '.jpg'
+        cv2.imwrite(out_path,img)
