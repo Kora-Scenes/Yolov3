@@ -110,7 +110,7 @@ def detector(image, num, gt_boxes):
     width = image.shape[1]
     net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
     person_layer_names = net.getLayerNames()
-    person_output_layers = [person_layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
+    person_output_layers = [person_layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
     person_outs = net.forward(person_output_layers)
     person_class_ids, person_confidences, person_boxes =[],[],[]
     for operson in person_outs:
@@ -132,6 +132,7 @@ def detector(image, num, gt_boxes):
     pindex = cv2.dnn.NMSBoxes(person_boxes, person_confidences, 0.5, 0.4)
     it = 0
     for i in pindex:
+        i = i[0]
         box = person_boxes[i]
         lx=round(box[0]+box[2]/2)
         ly=round(box[1]+box[3])-10
@@ -150,8 +151,8 @@ def evaluate():
     global tp,fp,fn,iou_list
     df = pd.read_csv('output.csv')
     prec = tp / float(tp + fp)
-	recall = tp / float(tp + fn)
-	f1_score = 2*prec*recall/(prec+recall)
+    recall = tp / float(tp + fn)
+    f1_score = 2*prec*recall/(prec+recall)
     iou_avg = sum(iou_list) / len(iou_list)
     print(df)
     print('\n')
@@ -183,4 +184,4 @@ for k in range(1,236):
     net = cv2.dnn.readNet('yolov3.weights','yolov3.cfg')
     detector(img,i,gt_boxes)
     df.to_csv('output.csv',index = False)
-    evaluate()
+evaluate()
