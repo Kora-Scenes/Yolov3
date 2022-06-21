@@ -26,6 +26,11 @@ test_annot=r'Test/Test/Annotations'
 
 df = pd.read_csv('output.csv') 
 glob_count = 1
+tp = 0
+fp = 0
+fn = 0
+iou_list = []
+
 
 def bb_intersection_over_union(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -39,21 +44,31 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 def iou_mapping(box_yolo,gt_boxes):
-    global df,glob_count
+    global df,glob_count,tp,fn,fp,iou_list
     overall_iou = []
+    max_iou = 0
     for i in gt_boxes:
         single_iou = bb_intersection_over_union(box_yolo,i)
         overall_iou.append(single_iou)
-    max_iou = max(overall_iou)
-    ind = overall_iou.index(max_iou)
-    if max_iou > 0.5:
-        gt = gt_boxes[ind]
-        df.loc [glob_count-1 , 'gt_x'] = gt[0]
-        df.loc [glob_count-1 , 'gt_y'] = gt[1]
-        df.loc [glob_count-1 , 'gt_xmax'] = gt[2]
-        df.loc [glob_count-1 , 'gt_ymax'] = gt[3]
-        df.loc [glob_count-1 , 'iou'] = max_iou
-
+    if len(overall_iou) == 0:
+        fn += 1
+    else:
+        max_iou = max(overall_iou)
+        ind = overall_iou.index(max_iou)
+    if max_iou == 0:
+        fn += 1
+    else:
+        if max_iou > 0.5:
+            tp += 1
+            gt = gt_boxes[ind]
+            df.loc [glob_count-1 , 'gt_x'] = gt[0]
+            df.loc [glob_count-1 , 'gt_y'] = gt[1]
+            df.loc [glob_count-1 , 'gt_xmax'] = gt[2]
+            df.loc [glob_count-1 , 'gt_ymax'] = gt[3]
+            df.loc [glob_count-1 , 'iou'] = max_iou
+        else:
+            fp += 1
+    iou_list.append(max_iou)
 
 def creatingInfoData(Annotpath):
     information={'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[],'name':[]
@@ -95,7 +110,7 @@ def detector(image, num, gt_boxes):
     width = image.shape[1]
     net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
     person_layer_names = net.getLayerNames()
-    person_output_layers = [person_layer_names[i[0] - 1 '''i - 1'''] for i in net.getUnconnectedOutLayers()]
+    person_output_layers = [person_layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
     person_outs = net.forward(person_output_layers)
     person_class_ids, person_confidences, person_boxes =[],[],[]
     for operson in person_outs:
@@ -117,8 +132,6 @@ def detector(image, num, gt_boxes):
     pindex = cv2.dnn.NMSBoxes(person_boxes, person_confidences, 0.5, 0.4)
     it = 0
     for i in pindex:
-        i = i[0]
-        #i
         box = person_boxes[i]
         lx=round(box[0]+box[2]/2)
         ly=round(box[1]+box[3])-10
@@ -133,9 +146,23 @@ def detector(image, num, gt_boxes):
             glob_count += 1
             it += 1
 
+def evaluate():
+    global tp,fp,fn,iou_list
+    df = pd.read_csv('output.csv')
+    prec = tp / float(tp + fp)
+	recall = tp / float(tp + fn)
+	f1_score = 2*prec*recall/(prec+recall)
+    iou_avg = sum(iou_list) / len(iou_list)
+    print(df)
+    print('\n')
+    print('Precision:',prec)
+    print('Recall:',recall)
+    print('F1 score:',f1_score)
+    print('Avg IOU:',iou_avg)
+
 train_info = creatingInfoData(train_annot)
 test_info = creatingInfoData(test_annot)
-print(test_info)
+#print(test_info)
 test_images = sorted(glob.glob(os.path.join(test_path,"*.jpg")))
 color = (255,0,0)
 thickness = 2
@@ -156,3 +183,4 @@ for k in range(1,236):
     net = cv2.dnn.readNet('yolov3.weights','yolov3.cfg')
     detector(img,i,gt_boxes)
     df.to_csv('output.csv',index = False)
+    evaluate()
