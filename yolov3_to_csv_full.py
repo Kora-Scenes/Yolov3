@@ -55,12 +55,13 @@ def iou_mapping(box_yolo,gt_boxes):
     else:
         max_iou = max(overall_iou)
         ind = overall_iou.index(max_iou)
+        gt = gt_boxes[ind]
+        gt_boxes.pop(ind)
     if max_iou == 0:
         fn += 1
     else:
         if max_iou > 0.5:
             tp += 1
-            gt = gt_boxes[ind]
             df.loc [glob_count-1 , 'gt_x'] = gt[0]
             df.loc [glob_count-1 , 'gt_y'] = gt[1]
             df.loc [glob_count-1 , 'gt_xmax'] = gt[2]
@@ -110,7 +111,11 @@ def detector(image, num, gt_boxes):
     width = image.shape[1]
     net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
     person_layer_names = net.getLayerNames()
-    person_output_layers = [person_layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    uncon_lay = net.getUnconnectedOutLayers()
+    if type(uncon_lay[0])==list:
+        person_output_layers = [person_layer_names[i[0] - 1] for i in uncon_lay]
+    else:
+        person_output_layers = [person_layer_names[i - 1] for i in uncon_lay]
     person_outs = net.forward(person_output_layers)
     person_class_ids, person_confidences, person_boxes =[],[],[]
     for operson in person_outs:
@@ -132,7 +137,8 @@ def detector(image, num, gt_boxes):
     pindex = cv2.dnn.NMSBoxes(person_boxes, person_confidences, 0.5, 0.4)
     it = 0
     for i in pindex:
-        i = i[0]
+        if type(i)==list:
+            i = i[0]
         box = person_boxes[i]
         lx=round(box[0]+box[2]/2)
         ly=round(box[1]+box[3])-10
