@@ -49,7 +49,11 @@ def detector(image, num):
     width = image.shape[1]
     net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
     person_layer_names = net.getLayerNames()
-    person_output_layers = [person_layer_names[i[0] - 1 '''i - 1'''] for i in net.getUnconnectedOutLayers()]
+    uncon_lay = net.getUnconnectedOutLayers()
+    if type(uncon_lay[0])==list:
+        person_output_layers = [person_layer_names[i[0] - 1] for i in uncon_lay]
+    else:
+        person_output_layers = [person_layer_names[i - 1] for i in uncon_lay]
     person_outs = net.forward(person_output_layers)
     person_class_ids, person_confidences, person_boxes =[],[],[]
     for operson in person_outs:
@@ -72,8 +76,8 @@ def detector(image, num):
     it = 0
     persons_in_image = []
     for i in pindex:
-        i = i[0]
-        #i
+        if type(i)==list:
+            i = i[0]
         box = person_boxes[i]
         lx=round(box[0]+box[2]/2)
         ly=round(box[1]+box[3])-10
@@ -103,7 +107,7 @@ if __name__ == '__main__':
     test_images = sorted(glob.glob(os.path.join(test_path,"*.jpg")))
     color = (255,0,0)
     thickness = 2
-
+    
     for k in range(1,11):
         img_path = 'Test/Test/JPEGImages/' + 'image (' + str(k) + ')' + '.jpg'
         img_id = 'image (' + str(k) + ')'
@@ -120,3 +124,21 @@ if __name__ == '__main__':
 
         out_path = 'results_iou/'+'Result' + str(k) + '.jpg'
         cv2.imwrite(out_path,img)
+
+    for k in range(1,236):
+        img_path = 'Test/Test/JPEGImages/' + 'image (' + str(k) + ')' + '.jpg'
+        img_id = 'image (' + str(k) + ')'
+        labels = test_info[test_info.name == img_id]
+        img = cv2.imread(img_path)
+        coco_classes = None
+        with open('coco.names','r') as f:
+            coco_classes = [line.strip() for line in f.readlines()]
+
+        net = cv2.dnn.readNet('yolov3.weights','yolov3.cfg')
+        detector(img, k)
+        for index, lab in labels.iterrows():
+            img = cv2.rectangle(img, (lab['xmin'], lab['ymin']), (lab['xmax'], lab['ymax']), color, thickness)
+        cv2.imshow('img',img)
+        cv2.waitKey(0)
+        #out_path = 'results_iou/'+'Result' + str(k) + '.jpg'
+        #cv2.imwrite(out_path,img)
