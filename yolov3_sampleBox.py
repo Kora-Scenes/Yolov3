@@ -16,7 +16,11 @@ def detector(image, num):
     width = image.shape[1]
     net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
     person_layer_names = net.getLayerNames()
-    person_output_layers = [person_layer_names[i[0] - 1 '''i - 1'''] for i in net.getUnconnectedOutLayers()]
+    uncon_lay = net.getUnconnectedOutLayers()
+    if type(uncon_lay[0])==list:
+        person_output_layers = [person_layer_names[i[0] - 1] for i in uncon_lay]
+    else:
+        person_output_layers = [person_layer_names[i - 1] for i in uncon_lay]
     person_outs = net.forward(person_output_layers)
     person_class_ids, person_confidences, person_boxes =[],[],[]
     for operson in person_outs:
@@ -39,8 +43,8 @@ def detector(image, num):
     it = 0
     persons_in_image = []
     for i in pindex:
-        i = i[0]
-        #i
+        if type(i)==list:
+            i = i[0]
         box = person_boxes[i]
         lx=round(box[0]+box[2]/2)
         ly=round(box[1]+box[3])-10
@@ -50,6 +54,7 @@ def detector(image, num):
             y = person_boxes[it][1]
             w = person_boxes[it][2]
             h = person_boxes[it][3]
+            print([x,y,x+w,y+h])
             persons_in_image.append({'x':x,'y':y,'w':w,'h':h,'conf':str(person_confidences[i])[0:4]})
             cv2.rectangle(image, (round(box[0]),round(box[1])), (round(box[0]+box[2]),round(box[1]+box[3])), (0,255,0), 2)
             text = (str(label)[0]) + ' ' + (str(person_confidences[i])[0:4])
