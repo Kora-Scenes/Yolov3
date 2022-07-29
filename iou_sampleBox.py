@@ -96,11 +96,11 @@ def detector(image, num):
 if __name__ == '__main__':
     wr.filterwarnings("ignore")
 
-    train_path=r'Train/Train/JPEGImages'
-    train_annot=r'Train/Train/Annotations'
+    train_path=r'Train/Train/JPEGImages'    # Path to Karthika95 kaggle Pedestrian dataset locally
+    train_annot=r'Train/Train/Annotations'  # Path to Karthika95 kaggle Pedestrian dataset locally
 
-    test_path=r'Test/Test/JPEGImages'
-    test_annot=r'Test/Test/Annotations'
+    test_path=r'Test/Test/JPEGImages'    # Path to Karthika95 kaggle Pedestrian dataset locally
+    test_annot=r'Test/Test/Annotations'  # Path to Karthika95 kaggle Pedestrian dataset locally
 
     train_info = creatingInfoData(train_annot)
     test_info = creatingInfoData(test_annot)
@@ -122,11 +122,11 @@ if __name__ == '__main__':
         for index, lab in labels.iterrows():
             img = cv2.rectangle(img, (lab['xmin'], lab['ymin']), (lab['xmax'], lab['ymax']), color, thickness)
 
-        out_path = 'results_iou/'+'Result' + str(k) + '.jpg'
+        out_path = 'results_iou/'+'Result' + str(k) + '.jpg'      # Keep a custom output path
         cv2.imwrite(out_path,img)
 
     for k in range(1,236):
-        img_path = 'Test/Test/JPEGImages/' + 'image (' + str(k) + ')' + '.jpg'
+        img_path = 'Test/Test/JPEGImages/' + 'image (' + str(k) + ')' + '.jpg'     # Path to Karthika95 kaggle Pedestrian dataset locally
         img_id = 'image (' + str(k) + ')'
         labels = test_info[test_info.name == img_id]
         img = cv2.imread(img_path)
